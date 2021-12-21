@@ -31,8 +31,8 @@ impl Port {
   pub fn new(path: String) -> Result<Port> {
     let baud_rate = 115_200;
     let timeout = 10;
-    let builder = serialport::new(path.clone(), baud_rate.clone())
-      .timeout(Duration::from_millis(timeout.clone()));
+    let builder = serialport::new(path.clone(), baud_rate)
+      .timeout(Duration::from_millis(timeout));
 
     let port = builder.open();
 
@@ -40,7 +40,7 @@ impl Port {
       Ok(port) => Ok(Port { path, port }),
       Err(e) => Err(Error::new(
         Status::GenericFailure,
-        format!("Failed to open \"{}\". Error: {}", path, e).to_owned(),
+        format!("Failed to open \"{}\". Error: {}", path, e),
       )),
     }
   }
@@ -52,7 +52,7 @@ impl Port {
 
   #[napi]
   pub fn write(&mut self, data: String) {
-    self.port.write(&data.as_bytes()).unwrap();
+    self.port.write_all(data.as_bytes()).unwrap();
   }
 
   #[napi]
@@ -62,7 +62,7 @@ impl Port {
       Ok(_t) => Ok(format!("{:?}", &serial_buf)),
       Err(e) => Err(Error::new(
         Status::GenericFailure,
-        format!("Failed to read \"{}\". Error: {}", &self.path, e).to_owned(),
+        format!("Failed to read \"{}\". Error: {}", &self.path, e),
       )),
     }
   }
