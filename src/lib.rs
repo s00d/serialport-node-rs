@@ -1,10 +1,10 @@
 #![deny(clippy::all)]
 
-use std::collections::HashMap;
+use napi::bindgen_prelude::*;
 use napi_derive::napi;
 use serialport::{available_ports, SerialPort, SerialPortType};
-use napi::{bindgen_prelude::*};
-use std::{str};
+use std::collections::HashMap;
+use std::str;
 use std::time::Duration;
 
 #[cfg(all(
@@ -15,7 +15,6 @@ use std::time::Duration;
 ))]
 #[global_allocator]
 static ALLOC: mimalloc::MiMalloc = mimalloc::MiMalloc;
-
 
 #[napi]
 pub struct Port {
@@ -38,15 +37,11 @@ impl Port {
     let port = builder.open();
 
     match port {
-      Ok(port) => {
-        Ok(Port{ path, port })
-      }
-      Err(e) => {
-        Err(Error::new(
-          Status::GenericFailure,
-          format!("Failed to open \"{}\". Error: {}", path, e).to_owned(),
-        ))
-      }
+      Ok(port) => Ok(Port { path, port }),
+      Err(e) => Err(Error::new(
+        Status::GenericFailure,
+        format!("Failed to open \"{}\". Error: {}", path, e).to_owned(),
+      )),
     }
   }
 
@@ -65,12 +60,10 @@ impl Port {
     let mut serial_buf: Vec<u8> = vec![0; 1000];
     match self.port.read(serial_buf.as_mut_slice()) {
       Ok(_t) => Ok(format!("{:?}", &serial_buf)),
-      Err(e) => {
-        Err(Error::new(
-          Status::GenericFailure,
-          format!("Failed to read \"{}\". Error: {}",&self. path, e).to_owned(),
-        ))
-      }
+      Err(e) => Err(Error::new(
+        Status::GenericFailure,
+        format!("Failed to read \"{}\". Error: {}", &self.path, e).to_owned(),
+      )),
     }
   }
 }
@@ -94,9 +87,21 @@ fn ports_list(env: Env) -> HashMap<String, Object> {
         obj.set("type", "USB").unwrap();
         obj.set("VID", info.vid.to_string()).unwrap();
         obj.set("PID", info.pid.to_string()).unwrap();
-        obj.set("serial_number", info.serial_number.as_ref().map_or("", String::as_str)).unwrap();
-        obj.set("manufacturer", info.manufacturer.as_ref().map_or("", String::as_str)).unwrap();
-        obj.set("product", info.product.as_ref().map_or("", String::as_str)).unwrap();
+        obj
+          .set(
+            "serial_number",
+            info.serial_number.as_ref().map_or("", String::as_str),
+          )
+          .unwrap();
+        obj
+          .set(
+            "manufacturer",
+            info.manufacturer.as_ref().map_or("", String::as_str),
+          )
+          .unwrap();
+        obj
+          .set("product", info.product.as_ref().map_or("", String::as_str))
+          .unwrap();
       }
       SerialPortType::BluetoothPort => {
         obj.set("type", "Bluetooth").unwrap();
@@ -108,9 +113,7 @@ fn ports_list(env: Env) -> HashMap<String, Object> {
         obj.set("type", "Unknown").unwrap();
       }
     }
-
     map.insert(p.port_name.clone(), obj);
   }
   map
 }
-
