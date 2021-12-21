@@ -31,8 +31,7 @@ impl Port {
   pub fn new(path: String) -> Result<Port> {
     let baud_rate = 115_200;
     let timeout = 10;
-    let builder = serialport::new(path.clone(), baud_rate)
-      .timeout(Duration::from_millis(timeout));
+    let builder = serialport::new(path.clone(), baud_rate).timeout(Duration::from_millis(timeout));
 
     let port = builder.open();
 
